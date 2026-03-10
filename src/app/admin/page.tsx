@@ -31,7 +31,6 @@ export default function AdminPage() {
   const [artistDraft, setArtistDraft] = useState({
     name: data.artist.name,
     tagline: data.artist.tagline,
-    adminAccessCode: data.adminAccessCode,
   });
   const [portfolioDraft, setPortfolioDraft] = useState({
     title: data.portfolioIntro.title,
@@ -61,6 +60,11 @@ export default function AdminPage() {
     url: "",
     icon: "✨",
   });
+  const [newContactLink, setNewContactLink] = useState({
+    label: "",
+    url: "",
+    icon: "✉️",
+  });
 
   useEffect(() => {
     setIsAuthed(window.localStorage.getItem(ADMIN_AUTH_KEY) === "true");
@@ -73,7 +77,6 @@ export default function AdminPage() {
     setArtistDraft({
       name: data.artist.name,
       tagline: data.artist.tagline,
-      adminAccessCode: data.adminAccessCode,
     });
     setPortfolioDraft({
       title: data.portfolioIntro.title,
@@ -99,7 +102,6 @@ export default function AdminPage() {
     data.artist.contactHtml,
     data.artist.name,
     data.artist.tagline,
-    data.adminAccessCode,
     data.portfolioIntro.title,
     data.portfolioIntro.description,
     data.pageCopy.aboutTitle,
@@ -277,6 +279,24 @@ export default function AdminPage() {
     }));
   };
 
+  const moveImage = (
+    sectionId: string,
+    imageId: string,
+    direction: number
+  ) => {
+    updateSection(sectionId, (section) => {
+      const index = section.images.findIndex((image) => image.id === imageId);
+      const targetIndex = index + direction;
+      if (index < 0 || targetIndex < 0 || targetIndex >= section.images.length) {
+        return section;
+      }
+      const nextImages = [...section.images];
+      const [removed] = nextImages.splice(index, 1);
+      nextImages.splice(targetIndex, 0, removed);
+      return { ...section, images: nextImages };
+    });
+  };
+
   const updateSocial = (
     socialId: string,
     updater: (social: SocialLink) => SocialLink
@@ -307,6 +327,42 @@ export default function AdminPage() {
     updateData({
       ...data,
       socials: data.socials.filter((social) => social.id !== socialId),
+    });
+  };
+
+  const updateContactLink = (
+    linkId: string,
+    updater: (link: SocialLink) => SocialLink
+  ) => {
+    updateData({
+      ...data,
+      contactLinks: data.contactLinks.map((link) =>
+        link.id === linkId ? updater(link) : link
+      ),
+    });
+  };
+
+  const addContactLink = () => {
+    if (!newContactLink.label.trim() || !newContactLink.url.trim()) {
+      return;
+    }
+    const link: SocialLink = {
+      id: `contact-${Date.now()}`,
+      label: newContactLink.label,
+      url: newContactLink.url,
+      icon: newContactLink.icon,
+    };
+    updateData({
+      ...data,
+      contactLinks: [...data.contactLinks, link],
+    });
+    setNewContactLink({ label: "", url: "", icon: "✉️" });
+  };
+
+  const removeContactLink = (linkId: string) => {
+    updateData({
+      ...data,
+      contactLinks: data.contactLinks.filter((link) => link.id !== linkId),
     });
   };
 
@@ -348,7 +404,7 @@ export default function AdminPage() {
   }
 
   return (
-    <div className="space-y-10">
+    <div className="admin-panel space-y-10">
       <header className="flex flex-wrap items-center justify-between gap-4">
         <div>
           <h1 className="text-3xl font-semibold">Admin dashboard</h1>
@@ -367,12 +423,6 @@ export default function AdminPage() {
           ) : null}
         </div>
         <div className="flex gap-3">
-          <button
-            className="rounded-full border border-[var(--border)] px-4 py-2 text-xs font-semibold"
-            onClick={resetToDefaults}
-          >
-            Reset to defaults
-          </button>
           <button
             className="rounded-full bg-[var(--accent)] px-4 py-2 text-xs font-semibold text-white"
             onClick={handleLogout}
@@ -414,22 +464,6 @@ export default function AdminPage() {
           />
         </div>
         <div className="space-y-3 md:col-span-2">
-          <label className="text-xs uppercase tracking-[0.2em] text-[var(--muted)]">
-            Admin access code
-          </label>
-          <input
-            className="w-full rounded-2xl border border-[var(--border)] bg-[var(--background)] px-4 py-2 text-sm"
-            value={artistDraft.adminAccessCode}
-            onChange={(event) =>
-              setArtistDraft((prev) => ({
-                ...prev,
-                adminAccessCode: event.target.value,
-              }))
-            }
-          />
-          <p className="text-xs text-[var(--muted)]">
-            If you change this, log out and log back in with the new code.
-          </p>
           <div className="flex gap-2">
             <button
               type="button"
@@ -443,13 +477,7 @@ export default function AdminPage() {
                     name: artistDraft.name,
                     tagline: artistDraft.tagline,
                   },
-                  adminAccessCode: artistDraft.adminAccessCode,
                 });
-                window.localStorage.setItem(
-                  ADMIN_CODE_KEY,
-                  artistDraft.adminAccessCode
-                );
-                setAdminCode(artistDraft.adminAccessCode);
                 setSaveMessage("Artist details saved.");
               }}
             >
@@ -462,7 +490,6 @@ export default function AdminPage() {
                 setArtistDraft({
                   name: data.artist.name,
                   tagline: data.artist.tagline,
-                  adminAccessCode: data.adminAccessCode,
                 })
               }
             >
@@ -689,21 +716,24 @@ export default function AdminPage() {
                 <label className="mt-3 block text-xs text-[var(--muted)]">
                   Upload cover image
                 </label>
-                <input
-                  className="mt-2 w-full text-xs text-[var(--muted)]"
-                  type="file"
-                  accept="image/*"
-                  onChange={async (event) => {
-                    const file = event.target.files?.[0];
-                    if (!file) return;
-                    const dataUrl = await uploadFile(file);
-                    updateSection(section.id, (current) => ({
-                      ...current,
-                      coverImage: dataUrl,
-                    }));
-                    event.target.value = "";
-                  }}
-                />
+                <label className="mt-2 flex cursor-pointer items-center justify-center rounded-full border border-dashed border-[var(--border)] bg-[var(--background)] px-4 py-2 text-xs font-semibold uppercase tracking-[0.2em] text-[var(--foreground)] transition hover:-translate-y-0.5 hover:border-[var(--foreground)] hover:bg-[var(--card)] hover:shadow-[0_12px_30px_rgba(0,0,0,0.25)]">
+                  Upload file
+                  <input
+                    className="sr-only hidden"
+                    type="file"
+                    accept="image/*"
+                    onChange={async (event) => {
+                      const file = event.target.files?.[0];
+                      if (!file) return;
+                      const dataUrl = await uploadFile(file);
+                      updateSection(section.id, (current) => ({
+                        ...current,
+                        coverImage: dataUrl,
+                      }));
+                      event.target.value = "";
+                    }}
+                  />
+                </label>
               </div>
               <div className="mt-4 grid gap-4 md:grid-cols-2">
                 {section.images.map((image) => (
@@ -713,12 +743,29 @@ export default function AdminPage() {
                   >
                     <div className="flex items-center justify-between gap-3">
                       <p className="text-sm font-semibold">{image.alt}</p>
-                      <button
-                        className="text-xs text-[var(--muted)] hover:text-[var(--accent)]"
-                        onClick={() => removeImage(section.id, image.id)}
-                      >
-                        Remove
-                      </button>
+                      <div className="flex items-center gap-2">
+                        <button
+                          type="button"
+                          className="text-xs text-[var(--muted)] hover:text-[var(--foreground)]"
+                          onClick={() => moveImage(section.id, image.id, -1)}
+                        >
+                          Up
+                        </button>
+                        <button
+                          type="button"
+                          className="text-xs text-[var(--muted)] hover:text-[var(--foreground)]"
+                          onClick={() => moveImage(section.id, image.id, 1)}
+                        >
+                          Down
+                        </button>
+                        <button
+                          type="button"
+                          className="text-xs text-[var(--muted)] hover:text-[var(--accent)]"
+                          onClick={() => removeImage(section.id, image.id)}
+                        >
+                          Remove
+                        </button>
+                      </div>
                     </div>
                     <input
                       className="mt-2 w-full rounded-lg border border-[var(--border)] bg-[var(--background)] px-3 py-2 text-xs"
@@ -788,25 +835,29 @@ export default function AdminPage() {
                 <label className="text-xs text-[var(--muted)]">
                   Or upload image
                 </label>
-                <input
-                  className="w-full text-xs text-[var(--muted)]"
-                  type="file"
-                  accept="image/*"
-                  onChange={async (event) => {
-                    const file = event.target.files?.[0];
-                    if (!file) return;
-                    const dataUrl = await uploadFile(file);
-                    setNewImageDrafts((prev) => ({
-                      ...prev,
-                      [section.id]: {
-                        src: dataUrl,
-                        alt: prev[section.id]?.alt || "",
-                        highlighted: prev[section.id]?.highlighted || false,
-                      },
-                    }));
-                    event.target.value = "";
-                  }}
-                />
+                <label className="flex cursor-pointer items-center justify-center rounded-full border border-dashed border-[var(--border)] bg-[var(--background)] px-4 py-2 text-xs font-semibold uppercase tracking-[0.2em] text-[var(--foreground)] transition hover:-translate-y-0.5 hover:border-[var(--foreground)] hover:bg-[var(--card)] hover:shadow-[0_12px_30px_rgba(0,0,0,0.25)]">
+                  Upload file
+                  <input
+                    className="sr-only hidden"
+                    type="file"
+                    accept="image/*"
+                    onChange={async (event) => {
+                      const file = event.target.files?.[0];
+                      if (!file) return;
+                      const dataUrl = await uploadFile(file);
+                      setNewImageDrafts((prev) => ({
+                        ...prev,
+                        [section.id]: {
+                          src: dataUrl,
+                          alt: prev[section.id]?.alt || "",
+                          description: prev[section.id]?.description || "",
+                          highlighted: prev[section.id]?.highlighted || false,
+                        },
+                      }));
+                      event.target.value = "";
+                    }}
+                  />
+                </label>
                 <input
                   className="w-full rounded-lg border border-[var(--border)] bg-[var(--background)] px-3 py-2 text-xs"
                   placeholder="Alt text"
@@ -1129,6 +1180,106 @@ export default function AdminPage() {
             onClick={addSocial}
           >
             Add social link
+          </button>
+        </div>
+      </section>
+
+      <section className="space-y-6 rounded-3xl border border-[var(--border)] bg-[var(--card)] p-6">
+        <div className="flex items-center justify-between">
+          <h2 className="text-lg font-semibold">Contact links</h2>
+          <span className="text-xs uppercase tracking-[0.2em] text-[var(--muted)]">
+            {data.contactLinks.length} links
+          </span>
+        </div>
+        <div className="grid gap-4 md:grid-cols-2">
+          {data.contactLinks.map((link) => (
+            <div
+              key={link.id}
+              className="rounded-2xl border border-[var(--border)] bg-[var(--background)] p-4"
+            >
+              <div className="flex items-center justify-between">
+                <input
+                  className="w-full rounded-xl border border-[var(--border)] bg-[var(--card)] px-3 py-2 text-sm"
+                  value={link.label}
+                  onChange={(event) =>
+                    updateContactLink(link.id, (current) => ({
+                      ...current,
+                      label: event.target.value,
+                    }))
+                  }
+                />
+                <button
+                  className="ml-3 text-xs text-[var(--muted)] hover:text-[var(--accent)]"
+                  onClick={() => removeContactLink(link.id)}
+                >
+                  Remove
+                </button>
+              </div>
+              <input
+                className="mt-3 w-full rounded-xl border border-[var(--border)] bg-[var(--card)] px-3 py-2 text-sm"
+                value={link.url}
+                onChange={(event) =>
+                  updateContactLink(link.id, (current) => ({
+                    ...current,
+                    url: event.target.value,
+                  }))
+                }
+              />
+              <input
+                className="mt-3 w-full rounded-xl border border-[var(--border)] bg-[var(--card)] px-3 py-2 text-sm"
+                value={link.icon}
+                onChange={(event) =>
+                  updateContactLink(link.id, (current) => ({
+                    ...current,
+                    icon: event.target.value,
+                  }))
+                }
+              />
+            </div>
+          ))}
+        </div>
+        <div className="rounded-2xl border border-dashed border-[var(--border)] bg-[var(--background)] p-4">
+          <h3 className="text-sm font-semibold">Add new contact link</h3>
+          <div className="mt-3 grid gap-3 md:grid-cols-3">
+            <input
+              className="rounded-xl border border-[var(--border)] bg-[var(--card)] px-3 py-2 text-sm"
+              placeholder="Label"
+              value={newContactLink.label}
+              onChange={(event) =>
+                setNewContactLink((prev) => ({
+                  ...prev,
+                  label: event.target.value,
+                }))
+              }
+            />
+            <input
+              className="rounded-xl border border-[var(--border)] bg-[var(--card)] px-3 py-2 text-sm"
+              placeholder="URL or mailto:"
+              value={newContactLink.url}
+              onChange={(event) =>
+                setNewContactLink((prev) => ({
+                  ...prev,
+                  url: event.target.value,
+                }))
+              }
+            />
+            <input
+              className="rounded-xl border border-[var(--border)] bg-[var(--card)] px-3 py-2 text-sm"
+              placeholder="Icon (emoji or text)"
+              value={newContactLink.icon}
+              onChange={(event) =>
+                setNewContactLink((prev) => ({
+                  ...prev,
+                  icon: event.target.value,
+                }))
+              }
+            />
+          </div>
+          <button
+            className="mt-4 rounded-full bg-[var(--accent)] px-4 py-2 text-xs font-semibold text-white"
+            onClick={addContactLink}
+          >
+            Add contact link
           </button>
         </div>
       </section>

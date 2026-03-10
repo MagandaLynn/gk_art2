@@ -14,6 +14,22 @@ export default function ContactPage() {
         <p className="text-sm text-[var(--muted)]">
           {data.pageCopy.contactDescription}
         </p>
+        {data.contactLinks.length ? (
+          <div className="flex flex-wrap items-center gap-3">
+            {data.contactLinks.map((link) => (
+              <a
+                key={link.id}
+                className="flex items-center gap-2 rounded-full border border-[var(--border)] px-4 py-2 text-xs font-semibold uppercase tracking-[0.2em] text-[var(--foreground)] transition hover:border-[var(--foreground)]"
+                href={link.url}
+                target={link.url.startsWith("mailto:") ? undefined : "_blank"}
+                rel={link.url.startsWith("mailto:") ? undefined : "noreferrer"}
+              >
+                <span aria-hidden>{link.icon}</span>
+                {link.label}
+              </a>
+            ))}
+          </div>
+        ) : null}
       </header>
       <section className="rounded-[28px] border border-[var(--border)] bg-[var(--card)] p-6">
         <div

@@ -37,6 +37,7 @@ export type SiteData = {
     bioHtml: string;
     contactHtml: string;
   };
+  contactLinks: SocialLink[];
   pageCopy: {
     aboutTitle: string;
     aboutDescription: string;
@@ -62,6 +63,14 @@ export const defaultSiteData: SiteData = {
     contactHtml:
       "For commissions, exhibitions, or collaborations, please reach out. This section can include booking details, studio hours, or a contact email.",
   },
+  contactLinks: [
+    {
+      id: "contact-1",
+      label: "Email",
+      url: "mailto:hello@example.com",
+      icon: "✉️",
+    },
+  ],
   pageCopy: {
     aboutTitle: "About",
     aboutDescription: "Artist statement",

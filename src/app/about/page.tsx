@@ -1,6 +1,5 @@
 "use client";
 
-import SocialLinks from "@/components/SocialLinks";
 import { useSiteData } from "@/hooks/useSiteData";
 
 export default function AboutPage() {
@@ -21,15 +20,6 @@ export default function AboutPage() {
           className="rich-text text-xl leading-9 text-[var(--foreground)]"
           dangerouslySetInnerHTML={{ __html: aboutHtml }}
         />
-      </section>
-      <section className="rounded-[28px] border border-[var(--border)] bg-[var(--card)] p-6">
-        <h2 className="heading-font text-2xl">Follow</h2>
-        <p className="mt-2 text-sm text-[var(--muted)]">
-          Social channels and studio updates.
-        </p>
-        <div className="mt-4">
-          <SocialLinks links={data.socials} />
-        </div>
       </section>
     </div>
   );

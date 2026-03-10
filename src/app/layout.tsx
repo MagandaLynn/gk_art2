@@ -16,8 +16,10 @@ const bebasNeue = Bebas_Neue({
 });
 
 export const metadata: Metadata = {
-  title: "Artist Portfolio",
-  description: "A curated portfolio and featured gallery for an emerging artist.",
+  title: "Gerard Knapp Art",
+  description: "Comic artist portfolio featuring sequential art, character design, and illustration work showcasing storytelling, panel composition, and visual narrative.",
+  icons: [{ rel: "icon", url: "/icon.svg" }],
+  
 };
 
 export default function RootLayout({
@@ -27,6 +29,12 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
+      <head>
+        <link
+          rel="stylesheet"
+          href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"
+        />
+      </head>
       <body className={`${spaceGrotesk.variable} ${bebasNeue.variable} antialiased`}>
         <ThemeProvider>
           <SiteShell>{children}</SiteShell>
