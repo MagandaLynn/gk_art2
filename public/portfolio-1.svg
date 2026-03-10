@@ -1,0 +1,10 @@
+<svg width="1200" height="800" viewBox="0 0 1200 800" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="grad-1" x1="0" y1="0" x2="1200" y2="800" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#f2d6c6" />
+      <stop offset="1" stop-color="#d97757" />
+    </linearGradient>
+  </defs>
+  <rect width="1200" height="800" fill="url(#grad-1)" />
+  <text x="80" y="140" fill="#1f1f1f" font-size="48" font-family="Arial" letter-spacing="6">PORTFOLIO 01</text>
+</svg>
