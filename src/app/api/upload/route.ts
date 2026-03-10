@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { PutObjectCommand, S3Client } from "@aws-sdk/client-s3";
+import { ObjectCannedACL, PutObjectCommand, S3Client } from "@aws-sdk/client-s3";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 
 const DEFAULT_ACCESS_CODE = "artist-admin";
@@ -29,7 +29,19 @@ export async function POST(request: Request) {
 
   const client = new S3Client({ region });
 
-  const acl = process.env.AWS_S3_ACL;
+  const aclValue = process.env.AWS_S3_ACL;
+  const allowedAcls: ObjectCannedACL[] = [
+    "private",
+    "public-read",
+    "public-read-write",
+    "authenticated-read",
+    "aws-exec-read",
+    "bucket-owner-read",
+    "bucket-owner-full-control",
+  ];
+  const acl = allowedAcls.includes(aclValue as ObjectCannedACL)
+    ? (aclValue as ObjectCannedACL)
+    : undefined;
   const command = new PutObjectCommand({
     Bucket: bucket,
     Key: key,

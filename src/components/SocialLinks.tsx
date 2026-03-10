@@ -10,7 +10,7 @@ export default function SocialLinks({ links }: { links: SocialLink[] }) {
       {links.map((link) => (
         <a
           key={link.id}
-          className="flex items-center gap-2 rounded-full border border-[var(--border)] px-3 py-1 text-xs font-medium text-[var(--foreground)] transition hover:border-[var(--accent)] hover:text-[var(--accent)]"
+          className="flex items-center gap-2 rounded-full border border-[var(--border)] bg-[var(--button-bg)] px-3 py-1 text-xs font-medium text-[var(--button-fg)] transition hover:border-[var(--foreground)] hover:bg-[var(--button-hover-bg)] hover:text-[var(--button-hover-fg)]"
           href={link.url}
           target="_blank"
           rel="noreferrer"

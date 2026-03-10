@@ -12,6 +12,10 @@ const applyTheme = (theme: SiteTheme) => {
   root.style.setProperty("--muted", theme.muted);
   root.style.setProperty("--card", theme.card);
   root.style.setProperty("--border", theme.border);
+  root.style.setProperty("--button-bg", theme.buttonBg);
+  root.style.setProperty("--button-fg", theme.buttonFg);
+  root.style.setProperty("--button-hover-bg", theme.buttonHoverBg);
+  root.style.setProperty("--button-hover-fg", theme.buttonHoverFg);
 };
 
 export default function ThemeProvider({

@@ -31,9 +31,8 @@ export default function ContactPage() {
           </div>
         ) : null}
       </header>
-      <section className="rounded-[28px] border border-[var(--border)] bg-[var(--card)] p-6">
+      <section >
         <div
-          className="rich-text text-base leading-7 text-[var(--foreground)]"
           dangerouslySetInnerHTML={{ __html: contactHtml }}
         />
       </section>

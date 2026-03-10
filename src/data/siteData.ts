@@ -5,6 +5,10 @@ export type SiteTheme = {
   muted: string;
   card: string;
   border: string;
+  buttonBg: string;
+  buttonFg: string;
+  buttonHoverBg: string;
+  buttonHoverFg: string;
 };
 
 export type SocialLink = {
@@ -89,6 +93,10 @@ export const defaultSiteData: SiteData = {
     muted: "#a1a1a1",
     card: "#161618",
     border: "#2a2a2e",
+    buttonBg: "#f5f5f3",
+    buttonFg: "#0f0f10",
+    buttonHoverBg: "#c7c7c2",
+    buttonHoverFg: "#0f0f10",
   },
   socials: [
     {

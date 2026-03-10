@@ -14,7 +14,16 @@ export const loadSiteData = (): SiteData => {
 
   try {
     const parsed = JSON.parse(stored) as SiteData;
-    return { ...defaultSiteData, ...parsed };
+    return {
+      ...defaultSiteData,
+      ...parsed,
+      artist: { ...defaultSiteData.artist, ...parsed.artist },
+      pageCopy: { ...defaultSiteData.pageCopy, ...parsed.pageCopy },
+      theme: { ...defaultSiteData.theme, ...parsed.theme },
+      socials: parsed.socials ?? defaultSiteData.socials,
+      contactLinks: parsed.contactLinks ?? defaultSiteData.contactLinks,
+      sections: parsed.sections ?? defaultSiteData.sections,
+    };
   } catch {
     return defaultSiteData;
   }

@@ -390,7 +390,7 @@ export default function AdminPage() {
             placeholder="Enter access code"
           />
           <button
-            className="w-full rounded-2xl bg-[var(--accent)] px-4 py-3 text-sm font-semibold text-white"
+            className="w-full rounded-2xl bg-[var(--button-bg)] px-4 py-3 text-sm font-semibold text-[var(--button-fg)] transition hover:bg-[var(--button-hover-bg)] hover:text-[var(--button-hover-fg)]"
             onClick={handleLogin}
           >
             Enter admin
@@ -424,7 +424,7 @@ export default function AdminPage() {
         </div>
         <div className="flex gap-3">
           <button
-            className="rounded-full bg-[var(--accent)] px-4 py-2 text-xs font-semibold text-white"
+            className="rounded-full bg-[var(--button-bg)] px-4 py-2 text-xs font-semibold text-[var(--button-fg)] transition hover:bg-[var(--button-hover-bg)] hover:text-[var(--button-hover-fg)]"
             onClick={handleLogout}
           >
             Log out
@@ -467,7 +467,7 @@ export default function AdminPage() {
           <div className="flex gap-2">
             <button
               type="button"
-              className="rounded-full bg-[var(--accent)] px-4 py-2 text-xs font-semibold text-white"
+              className="rounded-full bg-[var(--button-bg)] px-4 py-2 text-xs font-semibold text-[var(--button-fg)] transition hover:bg-[var(--button-hover-bg)] hover:text-[var(--button-hover-fg)]"
               onClick={() => {
                 if (!window.confirm("Save artist details changes?")) return;
                 updateData({
@@ -529,7 +529,7 @@ export default function AdminPage() {
           <div className="flex gap-2">
             <button
               type="button"
-              className="rounded-full bg-[var(--accent)] px-4 py-2 text-xs font-semibold text-white"
+              className="rounded-full bg-[var(--button-bg)] px-4 py-2 text-xs font-semibold text-[var(--button-fg)] transition hover:bg-[var(--button-hover-bg)] hover:text-[var(--button-hover-fg)]"
               onClick={() => {
                 if (!window.confirm("Save portfolio intro changes?")) return;
                 updateData({
@@ -641,7 +641,7 @@ export default function AdminPage() {
                   <div className="flex gap-2">
                     <button
                       type="button"
-                      className="rounded-full bg-[var(--accent)] px-3 py-1 text-xs font-semibold text-white"
+                      className="rounded-full bg-[var(--button-bg)] px-3 py-1 text-xs font-semibold text-[var(--button-fg)] transition hover:bg-[var(--button-hover-bg)] hover:text-[var(--button-hover-fg)]"
                       onClick={() => {
                         if (!window.confirm("Save section text changes?")) return;
                         const draft = sectionDrafts[section.id];
@@ -909,7 +909,7 @@ export default function AdminPage() {
                   Highlight this image
                 </label>
                 <button
-                  className="rounded-full bg-[var(--accent)] px-4 py-2 text-xs font-semibold text-white"
+                  className="rounded-full bg-[var(--button-bg)] px-4 py-2 text-xs font-semibold text-[var(--button-fg)] transition hover:bg-[var(--button-hover-bg)] hover:text-[var(--button-hover-fg)]"
                   onClick={() => addImage(section.id)}
                 >
                   Add image
@@ -957,7 +957,7 @@ export default function AdminPage() {
             />
           </div>
           <button
-            className="mt-4 rounded-full bg-[var(--accent)] px-4 py-2 text-xs font-semibold text-white"
+            className="mt-4 rounded-full bg-[var(--button-bg)] px-4 py-2 text-xs font-semibold text-[var(--button-fg)] transition hover:bg-[var(--button-hover-bg)] hover:text-[var(--button-hover-fg)]"
             onClick={addSection}
           >
             Add section
@@ -1006,7 +1006,7 @@ export default function AdminPage() {
           />
           <button
             type="button"
-            className="rounded-full bg-[var(--accent)] px-4 py-2 text-xs font-semibold text-white"
+            className="rounded-full bg-[var(--button-bg)] px-4 py-2 text-xs font-semibold text-[var(--button-fg)] transition hover:bg-[var(--button-hover-bg)] hover:text-[var(--button-hover-fg)]"
             onClick={() => {
               if (!window.confirm("Save About page changes?")) return;
               updateData({
@@ -1064,7 +1064,7 @@ export default function AdminPage() {
           />
           <button
             type="button"
-            className="rounded-full bg-[var(--accent)] px-4 py-2 text-xs font-semibold text-white"
+            className="rounded-full bg-[var(--button-bg)] px-4 py-2 text-xs font-semibold text-[var(--button-fg)] transition hover:bg-[var(--button-hover-bg)] hover:text-[var(--button-hover-fg)]"
             onClick={() => {
               if (!window.confirm("Save Contact page changes?")) return;
               updateData({
@@ -1176,7 +1176,7 @@ export default function AdminPage() {
             />
           </div>
           <button
-            className="mt-4 rounded-full bg-[var(--accent)] px-4 py-2 text-xs font-semibold text-white"
+            className="mt-4 rounded-full bg-[var(--button-bg)] px-4 py-2 text-xs font-semibold text-[var(--button-fg)] transition hover:bg-[var(--button-hover-bg)] hover:text-[var(--button-hover-fg)]"
             onClick={addSocial}
           >
             Add social link
@@ -1276,7 +1276,7 @@ export default function AdminPage() {
             />
           </div>
           <button
-            className="mt-4 rounded-full bg-[var(--accent)] px-4 py-2 text-xs font-semibold text-white"
+            className="mt-4 rounded-full bg-[var(--button-bg)] px-4 py-2 text-xs font-semibold text-[var(--button-fg)] transition hover:bg-[var(--button-hover-bg)] hover:text-[var(--button-hover-fg)]"
             onClick={addContactLink}
           >
             Add contact link
