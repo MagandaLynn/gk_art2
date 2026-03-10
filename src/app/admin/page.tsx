@@ -178,6 +178,62 @@ export default function AdminPage() {
     return fileUrl;
   };
 
+  const pushSiteDataToS3 = async () => {
+    const code = adminCode || accessCode || data.adminAccessCode;
+    if (!code) {
+      setSaveMessage("Missing admin access code.");
+      return;
+    }
+    setSaveMessage("Publishing site data...");
+    try {
+      const response = await fetch("/api/site-data", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ data, accessCode: code }),
+      });
+      const text = await response.text();
+      const payload = text ? (JSON.parse(text) as { ok?: boolean; error?: string; detail?: string }) : undefined;
+      if (!response.ok || !payload?.ok) {
+        const detail = payload?.detail || payload?.error || text || "Unknown error";
+        setSaveMessage(`Publish failed (${response.status}). ${detail}`);
+        return;
+      }
+      setSaveMessage("Site data published.");
+    } catch (error) {
+      setSaveMessage(
+        `Publish failed. ${error instanceof Error ? error.message : "Check storage settings."}`
+      );
+    }
+  };
+
+  const clearLocalDrafts = async () => {
+    setSaveMessage("Clearing local drafts...");
+    clearSiteData();
+    try {
+      const response = await fetch("/api/site-data", { cache: "no-store" });
+      const text = await response.text();
+      if (!response.ok) {
+        const payload = text
+          ? (JSON.parse(text) as { error?: string; detail?: string })
+          : undefined;
+        const detail = payload?.detail || payload?.error || text || "Unknown error";
+        setSaveMessage(`Clear drafts failed (${response.status}). ${detail}`);
+        return;
+      }
+      const payload = text ? (JSON.parse(text) as SiteData) : undefined;
+      if (!payload) {
+        setSaveMessage("Clear drafts failed. No data returned.");
+        return;
+      }
+      updateData(payload);
+      setSaveMessage("Local drafts cleared.");
+    } catch (error) {
+      setSaveMessage(
+        `Clear drafts failed. ${error instanceof Error ? error.message : "Unknown error"}`
+      );
+    }
+  };
+
   const handlePlainPaste = (
     event: React.ClipboardEvent<HTMLDivElement>
   ) => {
@@ -366,11 +422,6 @@ export default function AdminPage() {
     });
   };
 
-  const resetToDefaults = () => {
-    clearSiteData();
-    updateData(defaultSiteData);
-  };
-
   if (!isAuthed) {
     return (
       <div className="mx-auto max-w-xl space-y-6 rounded-3xl border border-[var(--border)] bg-[var(--card)] p-8">
@@ -424,6 +475,20 @@ export default function AdminPage() {
         </div>
         <div className="flex gap-3">
           <button
+            type="button"
+            className="rounded-full bg-[var(--button-bg)] px-4 py-2 text-xs font-semibold text-[var(--button-fg)] transition hover:bg-[var(--button-hover-bg)] hover:text-[var(--button-hover-fg)]"
+            onClick={pushSiteDataToS3}
+          >
+            Publish changes
+          </button>
+          <button
+            type="button"
+            className="rounded-full border border-[var(--border)] px-4 py-2 text-xs font-semibold"
+            onClick={clearLocalDrafts}
+          >
+            Clear local drafts
+          </button>
+          <button
             className="rounded-full bg-[var(--button-bg)] px-4 py-2 text-xs font-semibold text-[var(--button-fg)] transition hover:bg-[var(--button-hover-bg)] hover:text-[var(--button-hover-fg)]"
             onClick={handleLogout}
           >
@@ -446,9 +511,17 @@ export default function AdminPage() {
           <input
             className="w-full rounded-2xl border border-[var(--border)] bg-[var(--background)] px-4 py-2 text-sm"
             value={artistDraft.name}
-            onChange={(event) =>
-              setArtistDraft((prev) => ({ ...prev, name: event.target.value }))
-            }
+            onChange={(event) => {
+              const nextName = event.target.value;
+              setArtistDraft((prev) => ({ ...prev, name: nextName }));
+              updateData({
+                ...data,
+                artist: {
+                  ...data.artist,
+                  name: nextName,
+                },
+              });
+            }}
           />
         </div>
         <div className="space-y-3 md:col-span-2">
@@ -458,44 +531,18 @@ export default function AdminPage() {
           <input
             className="w-full rounded-2xl border border-[var(--border)] bg-[var(--background)] px-4 py-2 text-sm"
             value={artistDraft.tagline}
-            onChange={(event) =>
-              setArtistDraft((prev) => ({ ...prev, tagline: event.target.value }))
-            }
+            onChange={(event) => {
+              const nextTagline = event.target.value;
+              setArtistDraft((prev) => ({ ...prev, tagline: nextTagline }));
+              updateData({
+                ...data,
+                artist: {
+                  ...data.artist,
+                  tagline: nextTagline,
+                },
+              });
+            }}
           />
-        </div>
-        <div className="space-y-3 md:col-span-2">
-          <div className="flex gap-2">
-            <button
-              type="button"
-              className="rounded-full bg-[var(--button-bg)] px-4 py-2 text-xs font-semibold text-[var(--button-fg)] transition hover:bg-[var(--button-hover-bg)] hover:text-[var(--button-hover-fg)]"
-              onClick={() => {
-                if (!window.confirm("Save artist details changes?")) return;
-                updateData({
-                  ...data,
-                  artist: {
-                    ...data.artist,
-                    name: artistDraft.name,
-                    tagline: artistDraft.tagline,
-                  },
-                });
-                setSaveMessage("Artist details saved.");
-              }}
-            >
-              Save artist details
-            </button>
-            <button
-              type="button"
-              className="rounded-full border border-[var(--border)] px-4 py-2 text-xs font-semibold"
-              onClick={() =>
-                setArtistDraft({
-                  name: data.artist.name,
-                  tagline: data.artist.tagline,
-                })
-              }
-            >
-              Reset
-            </button>
-          </div>
         </div>
         <div className="space-y-3">
           <label className="text-xs uppercase tracking-[0.2em] text-[var(--muted)]">
@@ -504,12 +551,20 @@ export default function AdminPage() {
           <input
             className="w-full rounded-2xl border border-[var(--border)] bg-[var(--background)] px-4 py-2 text-sm"
             value={portfolioDraft.title}
-            onChange={(event) =>
+            onChange={(event) => {
+              const nextTitle = event.target.value;
               setPortfolioDraft((prev) => ({
                 ...prev,
-                title: event.target.value,
-              }))
-            }
+                title: nextTitle,
+              }));
+              updateData({
+                ...data,
+                portfolioIntro: {
+                  ...data.portfolioIntro,
+                  title: nextTitle,
+                },
+              });
+            }}
           />
         </div>
         <div className="space-y-3">
@@ -519,44 +574,22 @@ export default function AdminPage() {
           <textarea
             className="h-24 w-full rounded-2xl border border-[var(--border)] bg-[var(--background)] px-4 py-2 text-sm"
             value={portfolioDraft.description}
-            onChange={(event) =>
+            onChange={(event) => {
+              const nextDescription = event.target.value;
               setPortfolioDraft((prev) => ({
                 ...prev,
-                description: event.target.value,
-              }))
-            }
+                description: nextDescription,
+              }));
+              updateData({
+                ...data,
+                portfolioIntro: {
+                  ...data.portfolioIntro,
+                  description: nextDescription,
+                },
+              });
+            }}
           />
-          <div className="flex gap-2">
-            <button
-              type="button"
-              className="rounded-full bg-[var(--button-bg)] px-4 py-2 text-xs font-semibold text-[var(--button-fg)] transition hover:bg-[var(--button-hover-bg)] hover:text-[var(--button-hover-fg)]"
-              onClick={() => {
-                if (!window.confirm("Save portfolio intro changes?")) return;
-                updateData({
-                  ...data,
-                  portfolioIntro: {
-                    title: portfolioDraft.title,
-                    description: portfolioDraft.description,
-                  },
-                });
-                setSaveMessage("Portfolio intro saved.");
-              }}
-            >
-              Save portfolio intro
-            </button>
-            <button
-              type="button"
-              className="rounded-full border border-[var(--border)] px-4 py-2 text-xs font-semibold"
-              onClick={() =>
-                setPortfolioDraft({
-                  title: data.portfolioIntro.title,
-                  description: data.portfolioIntro.description,
-                })
-              }
-            >
-              Reset
-            </button>
-          </div>
+          <div className="flex gap-2" />
         </div>
       </section>
 
@@ -612,66 +645,43 @@ export default function AdminPage() {
                   <input
                     className="w-full rounded-xl border border-[var(--border)] bg-[var(--card)] px-3 py-2 text-sm font-semibold"
                     value={sectionDrafts[section.id]?.title ?? section.title}
-                    onChange={(event) =>
+                    onChange={(event) => {
+                      const nextTitle = event.target.value;
                       setSectionDrafts((prev) => ({
                         ...prev,
                         [section.id]: {
-                          title: event.target.value,
+                          title: nextTitle,
                           description:
                             prev[section.id]?.description ?? section.description,
                         },
-                      }))
-                    }
+                      }));
+                      updateSection(section.id, (current) => ({
+                        ...current,
+                        title: nextTitle,
+                      }));
+                    }}
                   />
                   <textarea
                     className="w-full rounded-xl border border-[var(--border)] bg-[var(--card)] px-3 py-2 text-sm"
                     value={
                       sectionDrafts[section.id]?.description ?? section.description
                     }
-                    onChange={(event) =>
+                    onChange={(event) => {
+                      const nextDescription = event.target.value;
                       setSectionDrafts((prev) => ({
                         ...prev,
                         [section.id]: {
                           title: prev[section.id]?.title ?? section.title,
-                          description: event.target.value,
+                          description: nextDescription,
                         },
-                      }))
-                    }
+                      }));
+                      updateSection(section.id, (current) => ({
+                        ...current,
+                        description: nextDescription,
+                      }));
+                    }}
                   />
-                  <div className="flex gap-2">
-                    <button
-                      type="button"
-                      className="rounded-full bg-[var(--button-bg)] px-3 py-1 text-xs font-semibold text-[var(--button-fg)] transition hover:bg-[var(--button-hover-bg)] hover:text-[var(--button-hover-fg)]"
-                      onClick={() => {
-                        if (!window.confirm("Save section text changes?")) return;
-                        const draft = sectionDrafts[section.id];
-                        if (!draft) return;
-                        updateSection(section.id, (current) => ({
-                          ...current,
-                          title: draft.title,
-                          description: draft.description,
-                        }));
-                        setSaveMessage("Section text saved.");
-                      }}
-                    >
-                      Save text
-                    </button>
-                    <button
-                      type="button"
-                      className="rounded-full border border-[var(--border)] px-3 py-1 text-xs"
-                      onClick={() =>
-                        setSectionDrafts((prev) => ({
-                          ...prev,
-                          [section.id]: {
-                            title: section.title,
-                            description: section.description,
-                          },
-                        }))
-                      }
-                    >
-                      Reset
-                    </button>
-                  </div>
+                  <div className="flex gap-2" />
                 </div>
                 <div className="flex gap-2">
                   <button
@@ -978,12 +988,20 @@ export default function AdminPage() {
             <input
               className="w-full rounded-2xl border border-[var(--border)] bg-[var(--background)] px-4 py-2 text-sm"
               value={pageCopyDraft.aboutTitle}
-              onChange={(event) =>
+              onChange={(event) => {
+                const nextTitle = event.target.value;
                 setPageCopyDraft((prev) => ({
                   ...prev,
-                  aboutTitle: event.target.value,
-                }))
-              }
+                  aboutTitle: nextTitle,
+                }));
+                updateData({
+                  ...data,
+                  pageCopy: {
+                    ...data.pageCopy,
+                    aboutTitle: nextTitle,
+                  },
+                });
+              }}
             />
             <label className="text-xs uppercase tracking-[0.2em] text-[var(--muted)]">
               About description
@@ -991,38 +1009,34 @@ export default function AdminPage() {
             <textarea
               className="min-h-[90px] w-full rounded-2xl border border-[var(--border)] bg-[var(--background)] p-3 text-sm"
               value={pageCopyDraft.aboutDescription}
-              onChange={(event) =>
+              onChange={(event) => {
+                const nextDescription = event.target.value;
                 setPageCopyDraft((prev) => ({
                   ...prev,
-                  aboutDescription: event.target.value,
-                }))
-              }
+                  aboutDescription: nextDescription,
+                }));
+                updateData({
+                  ...data,
+                  pageCopy: {
+                    ...data.pageCopy,
+                    aboutDescription: nextDescription,
+                  },
+                });
+              }}
             />
           </div>
           <textarea
             className="min-h-[180px] w-full rounded-2xl border border-[var(--border)] bg-[var(--background)] p-4 text-sm"
             value={bioDraft}
-            onChange={(event) => setBioDraft(event.target.value)}
-          />
-          <button
-            type="button"
-            className="rounded-full bg-[var(--button-bg)] px-4 py-2 text-xs font-semibold text-[var(--button-fg)] transition hover:bg-[var(--button-hover-bg)] hover:text-[var(--button-hover-fg)]"
-            onClick={() => {
-              if (!window.confirm("Save About page changes?")) return;
+            onChange={(event) => {
+              const nextBio = event.target.value;
+              setBioDraft(nextBio);
               updateData({
                 ...data,
-                pageCopy: {
-                  ...data.pageCopy,
-                  aboutTitle: pageCopyDraft.aboutTitle,
-                  aboutDescription: pageCopyDraft.aboutDescription,
-                },
-                artist: { ...data.artist, bioHtml: bioDraft },
+                artist: { ...data.artist, bioHtml: nextBio },
               });
-              setSaveMessage("About copy saved.");
             }}
-          >
-            Save About copy
-          </button>
+          />
         </div>
         <div className="space-y-3">
           <h2 className="text-lg font-semibold">Contact page</h2>
@@ -1036,12 +1050,20 @@ export default function AdminPage() {
             <input
               className="w-full rounded-2xl border border-[var(--border)] bg-[var(--background)] px-4 py-2 text-sm"
               value={pageCopyDraft.contactTitle}
-              onChange={(event) =>
+              onChange={(event) => {
+                const nextTitle = event.target.value;
                 setPageCopyDraft((prev) => ({
                   ...prev,
-                  contactTitle: event.target.value,
-                }))
-              }
+                  contactTitle: nextTitle,
+                }));
+                updateData({
+                  ...data,
+                  pageCopy: {
+                    ...data.pageCopy,
+                    contactTitle: nextTitle,
+                  },
+                });
+              }}
             />
             <label className="text-xs uppercase tracking-[0.2em] text-[var(--muted)]">
               Contact description
@@ -1049,38 +1071,34 @@ export default function AdminPage() {
             <textarea
               className="min-h-[90px] w-full rounded-2xl border border-[var(--border)] bg-[var(--background)] p-3 text-sm"
               value={pageCopyDraft.contactDescription}
-              onChange={(event) =>
+              onChange={(event) => {
+                const nextDescription = event.target.value;
                 setPageCopyDraft((prev) => ({
                   ...prev,
-                  contactDescription: event.target.value,
-                }))
-              }
+                  contactDescription: nextDescription,
+                }));
+                updateData({
+                  ...data,
+                  pageCopy: {
+                    ...data.pageCopy,
+                    contactDescription: nextDescription,
+                  },
+                });
+              }}
             />
           </div>
           <textarea
             className="min-h-[180px] w-full rounded-2xl border border-[var(--border)] bg-[var(--background)] p-4 text-sm"
             value={contactDraft}
-            onChange={(event) => setContactDraft(event.target.value)}
-          />
-          <button
-            type="button"
-            className="rounded-full bg-[var(--button-bg)] px-4 py-2 text-xs font-semibold text-[var(--button-fg)] transition hover:bg-[var(--button-hover-bg)] hover:text-[var(--button-hover-fg)]"
-            onClick={() => {
-              if (!window.confirm("Save Contact page changes?")) return;
+            onChange={(event) => {
+              const nextContact = event.target.value;
+              setContactDraft(nextContact);
               updateData({
                 ...data,
-                pageCopy: {
-                  ...data.pageCopy,
-                  contactTitle: pageCopyDraft.contactTitle,
-                  contactDescription: pageCopyDraft.contactDescription,
-                },
-                artist: { ...data.artist, contactHtml: contactDraft },
+                artist: { ...data.artist, contactHtml: nextContact },
               });
-              setSaveMessage("Contact copy saved.");
             }}
-          >
-            Save Contact copy
-          </button>
+          />
         </div>
       </section>
 

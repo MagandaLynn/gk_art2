@@ -36,6 +36,13 @@ export const saveSiteData = (data: SiteData) => {
   window.localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
 };
 
+export const hasStoredSiteData = () => {
+  if (typeof window === "undefined") {
+    return false;
+  }
+  return window.localStorage.getItem(STORAGE_KEY) !== null;
+};
+
 export const clearSiteData = () => {
   if (typeof window === "undefined") {
     return;

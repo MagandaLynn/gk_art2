@@ -36,6 +36,17 @@ This project supports admin-only uploads to S3 with optional CloudFront delivery
 
 The admin upload fields will send files to S3 and store the resulting URL.
 
+## Persisting site data (shared across visitors)
+
+By default, edits are saved in the browser. To persist changes for all visitors,
+set up an S3 JSON store:
+
+1. Ensure the AWS credentials in `.env.local` can read/write the bucket.
+2. Set `AWS_DATA_BUCKET` (or reuse `AWS_S3_BUCKET`) and `AWS_DATA_KEY`.
+3. Redeploy.
+
+Edits from the admin panel will now write to S3 and load for all visitors.
+
 ## Editing content
 
 Use the admin dashboard to:

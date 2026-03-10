@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { defaultSiteData, type SiteData } from "@/data/siteData";
-import { loadSiteData, saveSiteData } from "@/lib/siteStorage";
+import { hasStoredSiteData, loadSiteData, saveSiteData } from "@/lib/siteStorage";
 
 const SITE_DATA_EVENT = "artist-site-data-updated";
 
@@ -11,9 +11,34 @@ export const useSiteData = () => {
   const [ready, setReady] = useState(false);
 
   useEffect(() => {
-    const stored = loadSiteData();
-    setData(stored);
-    setReady(true);
+    const load = async () => {
+      if (hasStoredSiteData()) {
+        const stored = loadSiteData();
+        setData(stored);
+        setReady(true);
+        return;
+      }
+
+      try {
+        const response = await fetch("/api/site-data", { cache: "no-store" });
+        if (response.ok) {
+          const payload = (await response.json()) as SiteData;
+          setData(payload);
+          saveSiteData(payload);
+          setReady(true);
+          return;
+        }
+        const errorText = await response.text();
+        console.warn("Failed to load site data", response.status, errorText);
+      } catch {
+        // ignore fetch errors
+      }
+
+      setData(defaultSiteData);
+      setReady(true);
+    };
+
+    void load();
   }, []);
 
   useEffect(() => {
