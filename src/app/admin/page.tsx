@@ -471,9 +471,6 @@ export default function AdminPage() {
           >
             Enter admin
           </button>
-          <p className="text-xs text-[var(--muted)]">
-            Use your admin access code from the server configuration.
-          </p>
         </div>
       </div>
     );

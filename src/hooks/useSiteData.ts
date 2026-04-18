@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { defaultSiteData, type SiteData } from "@/data/siteData";
 import { hasStoredSiteData, loadSiteData, saveSiteData } from "@/lib/siteStorage";
 
@@ -13,10 +13,11 @@ type UseSiteDataOptions = {
 export const useSiteData = ({ preferLocalCache = false }: UseSiteDataOptions = {}) => {
   const [data, setData] = useState<SiteData>(defaultSiteData);
   const [ready, setReady] = useState(false);
+  const preferLocalCacheRef = useRef(preferLocalCache);
 
   useEffect(() => {
     const load = async () => {
-      if (preferLocalCache && hasStoredSiteData()) {
+      if (preferLocalCacheRef.current && hasStoredSiteData()) {
         setData(loadSiteData());
         setReady(true);
         return;
@@ -54,7 +55,7 @@ export const useSiteData = ({ preferLocalCache = false }: UseSiteDataOptions = {
     };
 
     void load();
-  }, [preferLocalCache]);
+  }, []);
 
   useEffect(() => {
     const handleUpdate = () => {
