@@ -21,7 +21,6 @@ Open http://localhost:3000.
 ## Admin access
 
 - Admin page: /admin (not linked from the public navigation)
-- Default access code: artist-admin
 - Updates are saved to local browser storage for quick iteration.
 
 ## AWS image uploads (recommended)

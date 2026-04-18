@@ -55,7 +55,6 @@ export type SiteData = {
   theme: SiteTheme;
   socials: SocialLink[];
   sections: PortfolioSection[];
-  adminAccessCode: string;
 };
 
 export const defaultSiteData: SiteData = {
@@ -172,5 +171,4 @@ export const defaultSiteData: SiteData = {
       ],
     },
   ],
-  adminAccessCode: "artist-admin",
 };

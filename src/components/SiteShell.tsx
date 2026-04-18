@@ -8,7 +8,7 @@ export default function SiteShell({ children }: { children: React.ReactNode }) {
   const { data } = useSiteData();
 
   return (
-    <div className="min-h-screen bg-[var(--background)] text-[var(--foreground)]">
+    <div className="flex min-h-[100dvh] flex-col bg-[var(--background)] text-[var(--foreground)]">
       <header className="border-b border-[var(--border)]">
         <div className="mx-auto flex w-full max-w-6xl flex-wrap items-center justify-between gap-6 px-6 py-8">
           <div>
@@ -29,7 +29,7 @@ export default function SiteShell({ children }: { children: React.ReactNode }) {
           </nav>
         </div>
       </header>
-      <main className="mx-auto w-full max-w-6xl px-6 py-14">{children}</main>
+      <main className="mx-auto w-full max-w-6xl flex-1 px-6 py-14">{children}</main>
       <footer className="border-t border-[var(--border)]">
         <div className="mx-auto flex w-full max-w-6xl flex-col gap-4 px-6 py-8 text-sm text-[var(--muted)] md:flex-row md:items-center md:justify-between">
           <span>© {new Date().getFullYear()} {data.artist.name}. All rights reserved.</span>

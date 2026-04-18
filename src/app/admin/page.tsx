@@ -26,6 +26,7 @@ export default function AdminPage() {
   const [accessCode, setAccessCode] = useState("");
   const [isAuthed, setIsAuthed] = useState(false);
   const [adminCode, setAdminCode] = useState("");
+  const [loginError, setLoginError] = useState("");
   const [uploadMessage, setUploadMessage] = useState("");
   const [saveMessage, setSaveMessage] = useState("");
   const [artistDraft, setArtistDraft] = useState({
@@ -119,14 +120,31 @@ export default function AdminPage() {
     );
   }, [data.sections]);
 
-  const handleLogin = () => {
-    if (accessCode.trim() === data.adminAccessCode) {
-      window.localStorage.setItem(ADMIN_AUTH_KEY, "true");
-      window.localStorage.setItem(ADMIN_CODE_KEY, accessCode.trim());
-      setIsAuthed(true);
-      setAdminCode(accessCode.trim());
-      setAccessCode("");
+  const handleLogin = async () => {
+    const trimmed = accessCode.trim();
+    if (!trimmed) {
+      return;
     }
+    setLoginError("");
+    try {
+      const response = await fetch("/api/auth", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ accessCode: trimmed }),
+      });
+      if (!response.ok) {
+        setLoginError("Incorrect access code.");
+        return;
+      }
+    } catch {
+      setLoginError("Could not verify access code. Check your connection.");
+      return;
+    }
+    window.localStorage.setItem(ADMIN_AUTH_KEY, "true");
+    window.localStorage.setItem(ADMIN_CODE_KEY, trimmed);
+    setIsAuthed(true);
+    setAdminCode(trimmed);
+    setAccessCode("");
   };
 
   const handleLogout = () => {
@@ -136,7 +154,7 @@ export default function AdminPage() {
   };
 
   const uploadFile = async (file: File) => {
-    const code = adminCode || accessCode || data.adminAccessCode;
+    const code = adminCode || accessCode;
     if (!code) {
       setUploadMessage("Missing admin access code. Please log in again.");
       throw new Error("Missing admin access code");
@@ -179,7 +197,7 @@ export default function AdminPage() {
   };
 
   const pushSiteDataToS3 = async () => {
-    const code = adminCode || accessCode || data.adminAccessCode;
+    const code = adminCode || accessCode;
     if (!code) {
       setSaveMessage("Missing admin access code.");
       return;
@@ -437,17 +455,24 @@ export default function AdminPage() {
             className="w-full rounded-2xl border border-[var(--border)] bg-[var(--background)] px-4 py-3 text-sm"
             type="password"
             value={accessCode}
-            onChange={(event) => setAccessCode(event.target.value)}
+            onChange={(event) => {
+              setAccessCode(event.target.value);
+              setLoginError("");
+            }}
+            onKeyDown={(event) => { if (event.key === "Enter") void handleLogin(); }}
             placeholder="Enter access code"
           />
+          {loginError ? (
+            <p className="text-xs text-red-400">{loginError}</p>
+          ) : null}
           <button
             className="w-full rounded-2xl bg-[var(--button-bg)] px-4 py-3 text-sm font-semibold text-[var(--button-fg)] transition hover:bg-[var(--button-hover-bg)] hover:text-[var(--button-hover-fg)]"
-            onClick={handleLogin}
+            onClick={() => void handleLogin()}
           >
             Enter admin
           </button>
           <p className="text-xs text-[var(--muted)]">
-            Default code: <span className="font-semibold">artist-admin</span>
+            Use your admin access code from the server configuration.
           </p>
         </div>
       </div>
