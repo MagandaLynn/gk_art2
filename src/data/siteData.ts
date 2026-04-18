@@ -55,6 +55,7 @@ export type SiteData = {
   theme: SiteTheme;
   socials: SocialLink[];
   sections: PortfolioSection[];
+  lastPublished?: number;
 };
 
 export const defaultSiteData: SiteData = {

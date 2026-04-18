@@ -22,7 +22,7 @@ type NewImageDraft = {
 };
 
 export default function AdminPage() {
-  const { data, updateData } = useSiteData();
+  const { data, updateData } = useSiteData({ preferLocalCache: true });
   const [accessCode, setAccessCode] = useState("");
   const [isAuthed, setIsAuthed] = useState(false);
   const [adminCode, setAdminCode] = useState("");

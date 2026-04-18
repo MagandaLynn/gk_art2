@@ -120,7 +120,7 @@ export async function PUT(request: Request) {
         Key: key,
         ContentType: "application/json",
         CacheControl: "no-store",
-        Body: JSON.stringify(data),
+        Body: JSON.stringify({ ...data, lastPublished: Date.now() }),
       })
     );
 

@@ -6,15 +6,18 @@ import { hasStoredSiteData, loadSiteData, saveSiteData } from "@/lib/siteStorage
 
 const SITE_DATA_EVENT = "artist-site-data-updated";
 
-export const useSiteData = () => {
+type UseSiteDataOptions = {
+  preferLocalCache?: boolean;
+};
+
+export const useSiteData = ({ preferLocalCache = false }: UseSiteDataOptions = {}) => {
   const [data, setData] = useState<SiteData>(defaultSiteData);
   const [ready, setReady] = useState(false);
 
   useEffect(() => {
     const load = async () => {
-      if (hasStoredSiteData()) {
-        const stored = loadSiteData();
-        setData(stored);
+      if (preferLocalCache && hasStoredSiteData()) {
+        setData(loadSiteData());
         setReady(true);
         return;
       }
@@ -23,15 +26,27 @@ export const useSiteData = () => {
         const response = await fetch("/api/site-data", { cache: "no-store" });
         if (response.ok) {
           const payload = (await response.json()) as SiteData;
-          setData(payload);
-          saveSiteData(payload);
+          const stored = hasStoredSiteData() ? loadSiteData() : null;
+          const serverVersion = payload.lastPublished ?? 0;
+          const localVersion = stored?.lastPublished ?? 0;
+          if (!stored || serverVersion > localVersion) {
+            setData(payload);
+            saveSiteData(payload);
+          } else {
+            setData(stored);
+          }
           setReady(true);
           return;
         }
         const errorText = await response.text();
         console.warn("Failed to load site data", response.status, errorText);
       } catch {
-        // ignore fetch errors
+        // network error — fall back to cache if available
+        if (hasStoredSiteData()) {
+          setData(loadSiteData());
+          setReady(true);
+          return;
+        }
       }
 
       setData(defaultSiteData);
@@ -39,7 +54,7 @@ export const useSiteData = () => {
     };
 
     void load();
-  }, []);
+  }, [preferLocalCache]);
 
   useEffect(() => {
     const handleUpdate = () => {
