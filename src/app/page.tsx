@@ -5,7 +5,7 @@ import FeaturedCarousel from "@/components/FeaturedCarousel";
 import { useSiteData } from "@/hooks/useSiteData";
 
 export default function Home() {
-  const { data } = useSiteData();
+  const { data, ready } = useSiteData();
 
   return (
     <div className="space-y-16">
@@ -33,7 +33,13 @@ export default function Home() {
           </div>
         </div>
         <div className="lg:translate-y-6">
-          <FeaturedCarousel data={data} />
+          {!ready ? (
+            <div className="flex h-[22rem] items-center justify-center rounded-3xl border border-dashed border-[var(--border)] bg-[var(--card)] text-sm text-[var(--muted)] md:h-[30rem] animate-pulse">
+              Loading...
+            </div>
+          ) : (
+            <FeaturedCarousel data={data} />
+          )}
         </div>
       </section>
 

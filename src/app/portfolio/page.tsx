@@ -4,7 +4,29 @@ import Link from "next/link";
 import { useSiteData } from "@/hooks/useSiteData";
 
 export default function PortfolioPage() {
-  const { data } = useSiteData();
+  const { data, ready } = useSiteData();
+
+  if (!ready) {
+    return (
+      <div className="space-y-8">
+        <header className="space-y-3">
+          <div className="h-10 w-64 rounded-lg bg-[var(--border)] animate-pulse"></div>
+          <div className="h-4 w-96 rounded-lg bg-[var(--border)] animate-pulse"></div>
+        </header>
+        <section className="grid grid-cols-1 gap-6 md:grid-cols-2">
+          {Array.from({ length: 4 }).map((_, i) => (
+            <div key={i} className="rounded-[30px] bg-[var(--card)] overflow-hidden">
+              <div className="h-72 bg-[var(--border)] animate-pulse md:h-96"></div>
+              <div className="p-5 space-y-2">
+                <div className="h-6 w-48 rounded-lg bg-[var(--border)] animate-pulse"></div>
+                <div className="h-4 w-full rounded-lg bg-[var(--border)] animate-pulse"></div>
+              </div>
+            </div>
+          ))}
+        </section>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-8">
