@@ -14,9 +14,9 @@ export default function PortfolioPage() {
           {data.portfolioIntro.description}
         </p>
       </header>
-      <section className="columns-1 gap-6 md:columns-2">
+      <section className="grid grid-cols-1 gap-6 md:grid-cols-2">
         {data.sections.map((section) => (
-          <div key={section.id} className="masonry-item mb-6">
+          <div key={section.id}>
             <Link
               className="group block overflow-hidden rounded-[30px] border border-[var(--border)] bg-[var(--card)] transition hover:-translate-y-1 hover:shadow-[0_18px_45px_rgba(0,0,0,0.35)]"
               href={`/portfolio/${section.id}`}

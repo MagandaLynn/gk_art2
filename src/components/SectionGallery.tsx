@@ -25,11 +25,11 @@ export default function SectionGallery({ section }: { section: PortfolioSection 
         </p>
       </header>
 
-      <div className="columns-1 gap-6 md:columns-2 lg:columns-3">
+      <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
         {images.map((image, index) => (
           <button
             key={image.id}
-            className="masonry-item group mb-6 w-full overflow-hidden rounded-[26px] border border-[var(--border)] bg-[var(--card)] text-left transition hover:-translate-y-1 hover:shadow-[0_18px_45px_rgba(0,0,0,0.35)]"
+            className="group w-full overflow-hidden rounded-[26px] border border-[var(--border)] bg-[var(--card)] text-left transition hover:-translate-y-1 hover:shadow-[0_18px_45px_rgba(0,0,0,0.35)]"
             onClick={() => setLightbox({ index })}
           >
             <img
